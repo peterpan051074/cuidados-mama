@@ -1,6 +1,5 @@
 {
   "rewrites": [
-    { "source": "/(.*)", "destination": "/$1" },
-    { "source": "/", "destination": "/Inicio - Resumen Mensual/code.html" }
+    { "source": "/", "destination": "/inicio_resumen_mensual/code.html" }
   ]
 }
