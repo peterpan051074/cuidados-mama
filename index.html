@@ -1,11 +1,1437 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" class="h-full bg-[#faf9f5]">
 <head>
   <meta charset="UTF-8">
-  <meta http-equiv="refresh" content="0; url=/cuidados/inicio_resumen_mensual/code.html">
-  <title>CuidaMamá</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>CuidaMamá - Control Familiar de Cuidados y Liquidaciones</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+          },
+          colors: {
+            primary: {
+              DEFAULT: '#2e6b56',
+              50: '#f0fdf4',
+              100: '#dcfce7',
+              200: '#bbf7d0',
+              600: '#2e6b56',
+              700: '#235343',
+              800: '#1a3d31',
+              900: '#132c23',
+            },
+            surface: {
+              DEFAULT: '#faf9f5',
+              card: '#ffffff',
+              subtle: '#f4f4f0',
+              border: '#e6e5e0'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .hide-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .hide-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+  </style>
 </head>
-<body>
-  <p>Cargando CuidaMamá...</p>
+<body class="bg-[#faf9f5] text-slate-800 antialiased flex flex-col min-h-screen">
+
+  <!-- Mobile Container Wrapper -->
+  <div class="w-full max-w-md mx-auto bg-[#faf9f5] min-h-screen flex flex-col shadow-2xl relative pb-24 border-x border-slate-200">
+    
+    <!-- TOP GLOBAL HEADER -->
+    <header class="bg-white/95 backdrop-blur sticky top-0 z-40 border-b border-slate-200 px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center text-primary border border-emerald-200 shadow-sm">
+          <i data-lucide="heart-handshake" class="w-6 h-6 text-[#2e6b56]"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-1.5">
+            <h1 class="font-bold text-slate-900 text-base leading-tight">CuidaMamá</h1>
+            <span class="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          </div>
+          <p id="headerSubtitle" class="text-xs text-slate-500 font-medium">Familia Conectada • Mayo 2024</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <button onclick="toggleTarifaModal()" title="Editar Tarifa Diaria" class="px-2.5 py-1 bg-emerald-50 border border-emerald-200 rounded-lg text-xs font-bold text-[#2e6b56] hover:bg-emerald-100 transition flex items-center gap-1">
+          <span id="headerTarifaBadge">40€/día</span>
+          <i data-lucide="edit-3" class="w-3 h-3"></i>
+        </button>
+        <button onclick="exportarBackup()" title="Exportar Copia de Seguridad" class="p-2 text-slate-500 hover:text-slate-800 rounded-lg hover:bg-slate-100">
+          <i data-lucide="download" class="w-4 h-4"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- MAIN VIEW CONTAINER -->
+    <main class="flex-1 p-4 overflow-y-auto">
+
+      <!-- ============================================== -->
+      <!-- TAB 1: INICIO (RESUMEN MENSUAL Y REGISTRO HOY) -->
+      <!-- ============================================== -->
+      <section id="tab-inicio" class="space-y-4">
+        <!-- Banner Conectividad Familiar -->
+        <div class="bg-white p-3 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between text-xs">
+          <div class="flex items-center gap-2 text-emerald-800 font-medium">
+            <i data-lucide="wifi" class="w-4 h-4 text-emerald-600"></i>
+            <span>3 dispositivos sincronizados</span>
+          </div>
+          <span class="text-slate-500">Marta, Carlos y Mamá</span>
+        </div>
+
+        <!-- Selector de Mes -->
+        <div class="flex items-center justify-between bg-white px-4 py-2.5 rounded-2xl border border-slate-200 shadow-sm">
+          <button onclick="cambiarMesRelativo(-1)" class="p-1 text-slate-600 hover:bg-slate-100 rounded-lg"><i data-lucide="chevron-left" class="w-5 h-5"></i></button>
+          <div class="text-center">
+            <span id="inicioMonthDisplay" class="font-bold text-slate-900 capitalize text-sm">Mayo 2024</span>
+          </div>
+          <button onclick="cambiarMesRelativo(1)" class="p-1 text-slate-600 hover:bg-slate-100 rounded-lg"><i data-lucide="chevron-right" class="w-5 h-5"></i></button>
+        </div>
+
+        <!-- Tarjeta Cuidadora & Tarifa -->
+        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-12 h-12 rounded-full bg-amber-100 border-2 border-emerald-500 flex items-center justify-center text-amber-800 font-bold text-lg overflow-hidden shadow-inner">
+              <span id="cuidadoraInitial">ER</span>
+            </div>
+            <div>
+              <div class="flex items-center gap-1.5">
+                <h3 id="cuidadoraNameDisplay" class="font-bold text-slate-900 text-sm leading-snug">Elena Ramos</h3>
+                <span class="w-2 h-2 rounded-full bg-emerald-500" title="Activa"></span>
+              </div>
+              <p class="text-xs text-slate-500">Cuidadora • Turno mañanas</p>
+            </div>
+          </div>
+          <button onclick="toggleTarifaModal()" class="text-right bg-emerald-50/70 border border-emerald-200/80 px-3 py-1.5 rounded-xl hover:bg-emerald-100/70 transition">
+            <span class="text-[10px] uppercase tracking-wider font-bold text-slate-500 block">Tarifa día</span>
+            <span id="inicioTarifaTag" class="text-sm font-black text-[#2e6b56]">40 €/día</span>
+          </button>
+        </div>
+
+        <!-- Balance Pendiente Destacado -->
+        <div class="bg-gradient-to-br from-white to-amber-50/40 p-5 rounded-3xl border border-amber-200/60 shadow-sm relative overflow-hidden">
+          <div class="flex justify-between items-start">
+            <div>
+              <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-900 border border-amber-200">
+                <i data-lucide="hourglass" class="w-3 h-3 text-amber-700"></i>
+                Balance Pendiente
+              </span>
+              <div class="mt-2 flex items-baseline gap-2">
+                <span id="balancePendienteTotal" class="text-3xl font-black text-slate-900">0 €</span>
+                <span id="balanceDiasPendientes" class="text-xs font-medium text-slate-500">(0 días sin liquidar)</span>
+              </div>
+              <p class="text-xs text-slate-500 mt-1">Base acordada: <span id="balanceTarifaBase" class="font-semibold text-slate-700">40 €/jornada</span></p>
+            </div>
+            <button onclick="navegarA('pagos')" class="p-3 bg-amber-100/80 hover:bg-amber-200 text-amber-900 rounded-2xl transition border border-amber-300/60 shadow-sm">
+              <i data-lucide="wallet" class="w-6 h-6"></i>
+            </button>
+          </div>
+
+          <!-- Métricas Asistencia vs Pagados -->
+          <div class="grid grid-cols-2 gap-3 mt-4 pt-3 border-t border-slate-200/60">
+            <div class="bg-white/80 p-3 rounded-xl border border-slate-200/80">
+              <span class="text-[11px] font-semibold text-slate-500 uppercase flex items-center gap-1">
+                <i data-lucide="check-circle" class="w-3 h-3 text-emerald-600"></i> Asistidos
+              </span>
+              <p class="mt-1"><span id="metricAsistidos" class="text-lg font-black text-slate-900">0</span> <span class="text-xs text-slate-500">días</span></p>
+              <div class="w-full bg-slate-100 h-1.5 rounded-full mt-1.5 overflow-hidden">
+                <div id="progresoAsistenciaBar" class="bg-emerald-600 h-full w-0 transition-all"></div>
+              </div>
+            </div>
+            <div class="bg-white/80 p-3 rounded-xl border border-slate-200/80">
+              <span class="text-[11px] font-semibold text-slate-500 uppercase flex items-center gap-1">
+                <i data-lucide="credit-card" class="w-3 h-3 text-blue-600"></i> Pagados
+              </span>
+              <p class="mt-1"><span id="metricPagados" class="text-lg font-black text-slate-900">0</span> <span class="text-xs text-slate-500">días</span></p>
+              <div class="w-full bg-slate-100 h-1.5 rounded-full mt-1.5 overflow-hidden">
+                <div id="progresoPagadosBar" class="bg-blue-600 h-full w-0 transition-all"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- REGISTRO DEL DÍA DE HOY -->
+        <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm space-y-4">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <div class="w-8 h-8 rounded-xl bg-emerald-100 flex items-center justify-center text-primary">
+                <i data-lucide="calendar-check-2" class="w-4 h-4 text-[#2e6b56]"></i>
+              </div>
+              <div>
+                <span class="text-[10px] font-bold text-slate-600 uppercase tracking-wider block">Registro de Hoy</span>
+                <h4 id="hoyFechaTexto" class="font-bold text-slate-900 text-sm">Viernes, 24 de Mayo</h4>
+              </div>
+            </div>
+            <span id="hoyEstadoBadge" class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-slate-100 text-slate-600 border border-slate-200">
+              Sin registrar
+            </span>
+          </div>
+
+          <p class="text-xs text-slate-600 font-medium">¿Ha venido hoy la cuidadora?</p>
+
+          <div class="grid grid-cols-2 gap-3">
+            <button id="btnHoyAsistio" onclick="registrarHoy(true)" class="py-2.5 px-3 rounded-xl border-2 font-bold text-xs flex items-center justify-center gap-1.5 transition border-slate-200 text-slate-700 hover:border-emerald-500">
+              <i data-lucide="check" class="w-4 h-4"></i>
+              <span>SÍ, ASISTIÓ</span>
+            </button>
+            <button id="btnHoyNoVino" onclick="registrarHoy(false)" class="py-2.5 px-3 rounded-xl border-2 font-bold text-xs flex items-center justify-center gap-1.5 transition border-slate-200 text-slate-700 hover:border-rose-500">
+              <i data-lucide="x" class="w-4 h-4"></i>
+              <span>NO VINO</span>
+            </button>
+          </div>
+
+          <!-- Estado de cobro de hoy -->
+          <div class="pt-2 border-t border-slate-100">
+            <span class="text-xs text-slate-500 block mb-2 font-medium">Estado del pago de hoy:</span>
+            <div class="flex gap-2">
+              <button id="btnHoyPendiente" onclick="setHoyPagoStatus('pendiente')" class="flex-1 py-1.5 px-2 rounded-lg text-xs font-bold border transition text-center bg-amber-50 text-amber-900 border-amber-300">
+                ⏳ Pendiente
+              </button>
+              <button id="btnHoyPagado" onclick="setHoyPagoStatus('pagado')" class="flex-1 py-1.5 px-2 rounded-lg text-xs font-bold border transition text-center bg-slate-50 text-slate-600 border-slate-200">
+                ✓ Pagado
+              </button>
+            </div>
+          </div>
+
+          <!-- Nota rápida -->
+          <div>
+            <label class="text-xs text-slate-500 font-medium block mb-1">Nota o recado del día:</label>
+            <input type="text" id="hoyNotaInput" onchange="guardarNotaHoy(this.value)" placeholder="Ej: Puntual, paseo y medicina dada..." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+          </div>
+        </div>
+
+        <!-- Acciones Rápidas -->
+        <div class="space-y-2">
+          <button onclick="navegarA('pagos')" class="w-full py-3.5 px-4 bg-[#2e6b56] hover:bg-[#235343] active:scale-[0.99] text-white rounded-2xl font-bold text-sm shadow-md transition flex items-center justify-center gap-2">
+            <i data-lucide="receipt" class="w-4 h-4"></i>
+            <span>Ir a Liquidar / Pagar (<span id="btnLiquidarTotal">0 €</span> pendientes)</span>
+          </button>
+          <button onclick="navegarA('dias')" class="w-full py-3 px-4 bg-white border border-slate-200 hover:bg-slate-50 rounded-2xl font-bold text-xs text-slate-700 transition flex items-center justify-center gap-2">
+            <i data-lucide="calendar" class="w-4 h-4 text-emerald-700"></i>
+            <span>Ver todos los días en el Calendario Mensual</span>
+          </button>
+        </div>
+
+        <!-- Últimos Registros Recientes -->
+        <div class="bg-white p-4 rounded-3xl border border-slate-200 shadow-sm">
+          <div class="flex items-center justify-between mb-3">
+            <h4 class="font-bold text-slate-900 text-xs uppercase tracking-wider">Últimos Registros del Mes</h4>
+            <span class="text-[11px] text-slate-500">Historial reciente</span>
+          </div>
+          <div id="listaUltimosDias" class="space-y-2 text-xs">
+            <!-- Renderizado dinámicamente -->
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================== -->
+      <!-- TAB 2: CALENDARIO Y REGISTRO DE DÍAS -->
+      <!-- ============================================== -->
+      <section id="tab-dias" class="hidden space-y-4">
+        <!-- Selector Mes y Leyenda -->
+        <div class="bg-white p-4 rounded-3xl border border-slate-200 shadow-sm space-y-3">
+          <div class="flex items-center justify-between">
+            <button onclick="cambiarMesRelativo(-1)" class="p-2 text-slate-600 hover:bg-slate-100 rounded-xl"><i data-lucide="chevron-left" class="w-5 h-5"></i></button>
+            <div class="text-center">
+              <h2 id="calendarioTitle" class="text-base font-extrabold text-slate-900 capitalize">Mayo 2024</h2>
+              <p class="text-xs text-slate-500">Pulsa cualquier día para cambiar su estado</p>
+            </div>
+            <button onclick="cambiarMesRelativo(1)" class="p-2 text-slate-600 hover:bg-slate-100 rounded-xl"><i data-lucide="chevron-right" class="w-5 h-5"></i></button>
+          </div>
+
+          <!-- Resumen del Mes en Calendario -->
+          <div class="grid grid-cols-3 gap-2 bg-slate-50 p-2.5 rounded-2xl text-center text-xs">
+            <div>
+              <span class="text-[10px] text-slate-500 font-bold block">ASISTIDOS</span>
+              <span id="calSummaryAsistidos" class="font-black text-slate-900 text-sm">0 d</span>
+            </div>
+            <div>
+              <span class="text-[10px] text-slate-500 font-bold block">PAGADOS</span>
+              <span id="calSummaryPagados" class="font-black text-emerald-700 text-sm">0 €</span>
+            </div>
+            <div>
+              <span class="text-[10px] text-slate-500 font-bold block">PENDIENTES</span>
+              <span id="calSummaryPendientes" class="font-black text-amber-700 text-sm">0 €</span>
+            </div>
+          </div>
+
+          <!-- CUADRÍCULA DE DÍAS DE LA SEMANA -->
+          <div class="grid grid-cols-7 text-center text-[11px] font-bold text-slate-400 py-1 border-b border-slate-100">
+            <span>LUN</span><span>MAR</span><span>MIÉ</span><span>JUE</span><span>VIE</span><span class="text-amber-600">SÁB</span><span class="text-amber-600">DOM</span>
+          </div>
+
+          <!-- MATRIZ DE DÍAS DEL MES -->
+          <div id="calendarioGrid" class="grid grid-cols-7 gap-1.5 py-1">
+            <!-- Renderizado dinámicamente con botones interactivos -->
+          </div>
+
+          <!-- Leyenda de Colores -->
+          <div class="flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-slate-100 text-[11px] text-slate-600">
+            <div class="flex items-center gap-1.5">
+              <span class="w-3 h-3 rounded-md bg-emerald-700"></span>
+              <span>Pagado</span>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <span class="w-3 h-3 rounded-md bg-amber-500"></span>
+              <span>Pendiente</span>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <span class="w-3 h-3 rounded-md bg-rose-200 border border-rose-300"></span>
+              <span>No asistió</span>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <span class="w-3 h-3 rounded-md bg-slate-100 border border-slate-200"></span>
+              <span>Libre</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- PANEL DE EDICIÓN DEL DÍA SELECCIONADO -->
+        <div id="panelDetalleDia" class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm space-y-3">
+          <div class="flex items-center justify-between">
+            <div>
+              <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Día Seleccionado</span>
+              <h3 id="detalleDiaFecha" class="font-black text-slate-900 text-base">Viernes, 24 de Mayo</h3>
+            </div>
+            <span id="detalleDiaBadge" class="px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800">
+              Pendiente (40€)
+            </span>
+          </div>
+
+          <!-- Selector de Estado del Día -->
+          <div class="space-y-1.5">
+            <span class="text-xs font-medium text-slate-600">¿Asistió el cuidador este día?</span>
+            <div class="grid grid-cols-3 gap-2">
+              <button onclick="setEstadoDiaSeleccionado('pendiente')" id="btnDetallePendiente" class="p-2 rounded-xl text-xs font-bold border transition text-center border-amber-300 bg-amber-50 text-amber-900">
+                Asistió (Pendiente)
+              </button>
+              <button onclick="setEstadoDiaSeleccionado('pagado')" id="btnDetallePagado" class="p-2 rounded-xl text-xs font-bold border transition text-center border-slate-200 text-slate-700 hover:border-emerald-500">
+                Asistió (Pagado)
+              </button>
+              <button onclick="setEstadoDiaSeleccionado('no_vino')" id="btnDetalleNoVino" class="p-2 rounded-xl text-xs font-bold border transition text-center border-slate-200 text-slate-700 hover:border-rose-400">
+                No Asistió
+              </button>
+            </div>
+          </div>
+
+          <!-- Tarifa específica de este día si se desea ajustar -->
+          <div class="flex items-center justify-between pt-2 border-t border-slate-100">
+            <span class="text-xs text-slate-600 font-medium">Tarifa para este día:</span>
+            <div class="flex items-center gap-1">
+              <input type="number" id="inputTarifaDiaDetalle" onchange="cambiarTarifaDiaEspecifico(this.value)" class="w-16 px-2 py-1 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-center focus:ring-emerald-500">
+              <span class="text-xs text-slate-500 font-bold">€</span>
+            </div>
+          </div>
+
+          <!-- Nota o motivo del día -->
+          <div>
+            <label class="text-xs text-slate-500 font-medium block mb-1">Nota o incidencia:</label>
+            <input type="text" id="inputNotaDiaDetalle" onchange="guardarNotaDiaEspecifico(this.value)" placeholder="Añade un detalle o motivo..." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-emerald-500">
+          </div>
+        </div>
+
+        <!-- Acciones en lote -->
+        <div class="flex gap-2">
+          <button onclick="marcarLaborablesDelMes()" class="flex-1 py-3 px-3 bg-emerald-50 border border-emerald-200 text-[#2e6b56] font-bold text-xs rounded-2xl hover:bg-emerald-100 transition flex items-center justify-center gap-1.5">
+            <i data-lucide="check-check" class="w-4 h-4"></i>
+            <span>Marcar Lunes-Viernes como Asistidos</span>
+          </button>
+          <button onclick="limpiarMesActual()" class="py-3 px-4 bg-slate-100 border border-slate-200 text-slate-600 font-bold text-xs rounded-2xl hover:bg-rose-50 hover:text-rose-600 transition">
+            Limpiar Mes
+          </button>
+        </div>
+      </section>
+
+      <!-- ============================================== -->
+      <!-- TAB 3: GESTIÓN DE PAGOS Y LIQUIDACIÓN -->
+      <!-- ============================================== -->
+      <section id="tab-pagos" class="hidden space-y-4">
+        <!-- Tarjeta Resumen Pendiente de Cobro -->
+        <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-900 border border-amber-200">
+              <i data-lucide="alert-circle" class="w-3.5 h-3.5 text-amber-700"></i>
+              Liquidación Pendiente
+            </span>
+            <span id="pagosTagMes" class="text-xs font-bold text-slate-500 uppercase">Mayo 2024</span>
+          </div>
+
+          <div class="flex items-baseline justify-between">
+            <div>
+              <span id="pagosMontoPendiente" class="text-3xl font-black text-slate-900">0,00 €</span>
+              <p class="text-xs text-slate-500 mt-0.5"><span id="pagosCantidadDiasPendientes">0</span> días pendientes en este mes</p>
+            </div>
+            <button onclick="seleccionarTodosLosPendientes(true)" class="text-xs font-bold text-[#2e6b56] hover:underline">
+              Seleccionar todos
+            </button>
+          </div>
+
+          <div class="p-2.5 bg-emerald-50/70 border border-emerald-100 rounded-xl text-[11px] text-emerald-900 flex items-start gap-2">
+            <i data-lucide="info" class="w-4 h-4 text-emerald-700 flex-shrink-0 mt-0.5"></i>
+            <span>Los meses funcionan como ciclos cerrados independientes. El balance pendiente corresponde exclusivamente al mes seleccionado.</span>
+          </div>
+        </div>
+
+        <!-- LISTA DE DÍAS PENDIENTES DE PAGO CON CHECKBOX -->
+        <div class="bg-white p-4 rounded-3xl border border-slate-200 shadow-sm space-y-3">
+          <div class="flex items-center justify-between">
+            <h3 class="font-bold text-slate-900 text-xs uppercase tracking-wider">Días trabajados por abonar</h3>
+            <span id="contadorSeleccionados" class="text-xs font-semibold text-slate-500">0 seleccionados</span>
+          </div>
+
+          <div id="listaDiasSinPagar" class="space-y-2 max-h-60 overflow-y-auto pr-1">
+            <!-- Renderizado dinámicamente con checkboxes -->
+          </div>
+
+          <!-- Total Seleccionado para pagar -->
+          <div class="flex items-center justify-between pt-3 border-t border-slate-100 bg-slate-50 p-3 rounded-2xl">
+            <span class="text-xs font-bold text-slate-700">Importe a liquidar ahora:</span>
+            <span id="totalImporteSeleccionado" class="text-lg font-black text-emerald-800">0,00 €</span>
+          </div>
+        </div>
+
+        <!-- FORMULARIO DE CONFIRMACIÓN DE ABONO -->
+        <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm space-y-4">
+          <h4 class="font-bold text-slate-900 text-xs uppercase tracking-wider flex items-center gap-1.5">
+            <i data-lucide="check-circle" class="w-4 h-4 text-[#2e6b56]"></i>
+            Registrar Abono / Pago
+          </h4>
+
+          <!-- Selector de Método de Pago -->
+          <div>
+            <label class="text-xs text-slate-500 font-medium block mb-1.5">Método empleado:</label>
+            <div class="grid grid-cols-3 gap-2">
+              <button onclick="setMetodoPago('Efectivo')" id="metodoEfectivo" class="py-2 px-2 text-xs font-bold rounded-xl border bg-emerald-50 border-emerald-500 text-[#2e6b56] flex flex-col items-center gap-1">
+                <i data-lucide="banknote" class="w-4 h-4"></i>
+                <span>Efectivo</span>
+              </button>
+              <button onclick="setMetodoPago('Bizum')" id="metodoBizum" class="py-2 px-2 text-xs font-bold rounded-xl border border-slate-200 text-slate-700 flex flex-col items-center gap-1 hover:border-slate-400">
+                <i data-lucide="smartphone" class="w-4 h-4"></i>
+                <span>Bizum</span>
+              </button>
+              <button onclick="setMetodoPago('Transferencia')" id="metodoTransf" class="py-2 px-2 text-xs font-bold rounded-xl border border-slate-200 text-slate-700 flex flex-col items-center gap-1 hover:border-slate-400">
+                <i data-lucide="building" class="w-4 h-4"></i>
+                <span>Transf.</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Nota o Justificante -->
+          <div>
+            <label class="text-xs text-slate-500 font-medium block mb-1">Concepto o nota de entrega:</label>
+            <input type="text" id="notaAbonoInput" placeholder="Ej: Entregado en mano por Carlos tras finalizar semana..." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-emerald-500">
+          </div>
+
+          <!-- Botón Confirmar Pago -->
+          <button onclick="confirmarLiquidacionSeleccionada()" id="btnConfirmarPago" class="w-full py-3.5 px-4 bg-[#2e6b56] hover:bg-[#235343] active:scale-[0.99] text-white font-bold text-sm rounded-2xl shadow-md transition flex items-center justify-center gap-2">
+            <i data-lucide="shield-check" class="w-5 h-5"></i>
+            <span>Confirmar y Registrar Pago (<span id="btnLabelMonto">0 €</span>)</span>
+          </button>
+        </div>
+
+        <!-- Historial de Abonos del Mes Actual -->
+        <div class="bg-white p-4 rounded-3xl border border-slate-200 shadow-sm space-y-3">
+          <h4 class="font-bold text-slate-900 text-xs uppercase tracking-wider">Abonos realizados este mes</h4>
+          <div id="listaAbonosRealizados" class="space-y-2 text-xs">
+            <!-- Renderizado dinámicamente -->
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================== -->
+      <!-- TAB 4: ARCHIVO HISTÓRICO DE MESES -->
+      <!-- ============================================== -->
+      <section id="tab-historial" class="hidden space-y-4">
+        <!-- Resumen General Anual -->
+        <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-slate-100 text-slate-700">
+              <i data-lucide="archive" class="w-3.5 h-3.5 text-slate-600"></i>
+              Resumen Acumulado 2024
+            </span>
+            <span class="text-xs text-slate-500">Ciclos mensuales</span>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3 pt-1">
+            <div class="bg-slate-50 p-3 rounded-2xl">
+              <span class="text-[10px] uppercase font-bold text-slate-500 block">Total días cuidados</span>
+              <span id="historialTotalDias" class="text-2xl font-black text-slate-900">0</span>
+              <span class="text-[10px] text-emerald-700 block font-semibold mt-0.5">✓ 100% validados</span>
+            </div>
+            <div class="bg-slate-50 p-3 rounded-2xl">
+              <span class="text-[10px] uppercase font-bold text-slate-500 block">Total Liquidado</span>
+              <span id="historialTotalEuros" class="text-2xl font-black text-emerald-800">0 €</span>
+              <span class="text-[10px] text-slate-500 block mt-0.5">En el año en curso</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Lista de Tarjetas de Meses Anteriores -->
+        <div class="space-y-3" id="listaMesesHistorico">
+          <!-- Renderizado dinámicamente -->
+        </div>
+
+        <!-- Botón Exportar PDF / Excel resumen -->
+        <div class="bg-emerald-50 border border-emerald-200 p-4 rounded-3xl flex items-center justify-between">
+          <div>
+            <h4 class="font-bold text-slate-900 text-xs">¿Necesitas justificante familiar?</h4>
+            <p class="text-[11px] text-slate-600">Exporta todos los datos guardados en formato JSON.</p>
+          </div>
+          <button onclick="exportarBackup()" class="p-3 bg-[#2e6b56] hover:bg-[#235343] text-white rounded-2xl transition shadow">
+            <i data-lucide="file-down" class="w-5 h-5"></i>
+          </button>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- ============================================== -->
+    <!-- BOTTOM NAVIGATION BAR (PERSISTENT & FUNCTIONAL)-->
+    <!-- ============================================== -->
+    <nav class="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white/95 backdrop-blur border-t border-slate-200 z-50 px-3 py-2 flex items-center justify-around shadow-lg">
+      <button onclick="navegarA('inicio')" id="nav-btn-inicio" class="flex flex-col items-center gap-1 py-1 px-3 rounded-xl transition text-[#2e6b56]">
+        <i data-lucide="layout-grid" class="w-5 h-5"></i>
+        <span class="text-[11px] font-bold">Inicio</span>
+      </button>
+      <button onclick="navegarA('dias')" id="nav-btn-dias" class="flex flex-col items-center gap-1 py-1 px-3 rounded-xl transition text-slate-400 hover:text-slate-700">
+        <i data-lucide="calendar" class="w-5 h-5"></i>
+        <span class="text-[11px] font-bold">Días</span>
+      </button>
+      <button onclick="navegarA('pagos')" id="nav-btn-pagos" class="flex flex-col items-center gap-1 py-1 px-3 rounded-xl transition text-slate-400 hover:text-slate-700 relative">
+        <i data-lucide="wallet" class="w-5 h-5"></i>
+        <span class="text-[11px] font-bold">Pagos</span>
+        <span id="navBadgePagos" class="hidden absolute top-0.5 right-2 w-2 h-2 rounded-full bg-amber-500"></span>
+      </button>
+      <button onclick="navegarA('historial')" id="nav-btn-historial" class="flex flex-col items-center gap-1 py-1 px-3 rounded-xl transition text-slate-400 hover:text-slate-700">
+        <i data-lucide="history" class="w-5 h-5"></i>
+        <span class="text-[11px] font-bold">Historial</span>
+      </button>
+    </nav>
+
+    <!-- ============================================== -->
+    <!-- MODAL: CAMBIAR TARIFA DIARIA Y NOMBRE CUIDADORA -->
+    <!-- ============================================== -->
+    <div id="modalTarifa" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+      <div class="bg-white w-full max-w-sm rounded-3xl p-5 shadow-2xl border border-slate-200 space-y-4 animate-in fade-in zoom-in-95 duration-150">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+          <div class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center text-[#2e6b56]">
+              <i data-lucide="sliders" class="w-4 h-4"></i>
+            </div>
+            <h3 class="font-bold text-slate-900 text-sm">Ajustar Tarifa y Cuidadora</h3>
+          </div>
+          <button onclick="toggleTarifaModal()" class="p-1.5 text-slate-400 hover:text-slate-700 rounded-lg"><i data-lucide="x" class="w-5 h-5"></i></button>
+        </div>
+
+        <div class="space-y-3">
+          <div>
+            <label class="text-xs font-semibold text-slate-600 block mb-1">Nombre de la Cuidadora:</label>
+            <input type="text" id="modalInputCuidadora" value="Elena Ramos" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:ring-2 focus:ring-emerald-500">
+          </div>
+
+          <div>
+            <label class="text-xs font-semibold text-slate-600 block mb-1">Tarifa acordada por día (€):</label>
+            <div class="relative">
+              <input type="number" id="modalInputTarifa" value="40" min="1" step="1" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-base font-black text-emerald-800 pl-4 pr-10 focus:ring-2 focus:ring-emerald-500">
+              <span class="absolute right-3 top-2.5 font-bold text-slate-400 text-sm">€ / día</span>
+            </div>
+            <p class="text-[11px] text-slate-500 mt-1">Puedes modificarla cuando quieras. Se aplicará a los cálculos y a los nuevos días marcados.</p>
+          </div>
+        </div>
+
+        <div class="flex gap-2 pt-2">
+          <button onclick="toggleTarifaModal()" class="flex-1 py-2.5 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-xs">
+            Cancelar
+          </button>
+          <button onclick="guardarConfiguracionTarifa()" class="flex-1 py-2.5 px-3 bg-[#2e6b56] hover:bg-[#235343] text-white rounded-xl font-bold text-xs shadow">
+            Guardar Cambios
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- JAVASCRIPT LOGIC & STATE PERSISTENCE -->
+  <script>
+    // ========================================================
+    // ESTADO DE LA APLICACIÓN & PERSISTENCIA (localStorage)
+    // ========================================================
+    const STORAGE_KEY = 'cuidamama_app_state_v1';
+
+    const MESES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+    const DIAS_SEMANA = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+
+    let state = {
+      cuidadora: 'Elena Ramos',
+      tarifaDefecto: 40,
+      mesActual: 4, // 0-indexed: Mayo (4)
+      anoActual: 2024,
+      diaSeleccionadoNum: 24,
+      metodoPagoSeleccionado: 'Efectivo',
+      seleccionadosParaPagar: [], // IDs de fecha 'YYYY-MM-DD'
+      dias: {}, // Llave: 'YYYY-MM-DD' -> { status: 'pendiente'|'pagado'|'no_vino'|'libre', tarifa: 40, nota: '' }
+      abonos: [] // Historial de pagos: { id, fecha, mes, ano, importe, diasContados, metodo, nota }
+    };
+
+    // Inicializar con datos de ejemplo realistas si está vacío
+    function inicializarDatosPorDefecto() {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        try {
+          state = JSON.parse(saved);
+          return;
+        } catch (e) {
+          console.error("Error al cargar estado previo, reiniciando:", e);
+        }
+      }
+
+      // Datos predeterminados de Mayo 2024 para arranque inmediato:
+      // 16 días trabajados: 12 pagados, 4 pendientes (160€)
+      const diasMayo = [
+        { d: 1, s: 'pagado' }, { d: 2, s: 'pagado' }, { d: 3, s: 'pagado' },
+        { d: 6, s: 'pagado' }, { d: 7, s: 'pagado' }, { d: 8, s: 'pagado' }, { d: 9, s: 'pagado' }, { d: 10, s: 'pagado' },
+        { d: 13, s: 'pagado' }, { d: 14, s: 'pagado' }, { d: 15, s: 'no_vino', n: 'Festivo local' }, { d: 16, s: 'pagado' }, { d: 17, s: 'pagado' },
+        { d: 20, s: 'pendiente', n: 'Acompañamiento médico' },
+        { d: 21, s: 'no_vino', n: 'Aviso con antelación' },
+        { d: 22, s: 'pendiente' },
+        { d: 23, s: 'pendiente', n: 'Toma de tensión correcta' },
+        { d: 24, s: 'pendiente', n: 'Llegó puntual, paseo al parque' }
+      ];
+
+      diasMayo.forEach(item => {
+        const key = `2024-05-${String(item.d).padStart(2, '0')}`;
+        state.dias[key] = {
+          status: item.s,
+          tarifa: 40,
+          nota: item.n || ''
+        };
+      });
+
+      // Historial de abonos previos de Mayo
+      state.abonos = [
+        {
+          id: 'abono-1',
+          fecha: '05 Mayo 2024',
+          mes: 4,
+          ano: 2024,
+          importe: 160,
+          diasContados: 4,
+          metodo: 'Bizum',
+          nota: 'Semana 18 liquidada'
+        },
+        {
+          id: 'abono-2',
+          fecha: '17 Mayo 2024',
+          mes: 4,
+          ano: 2024,
+          importe: 320,
+          diasContados: 8,
+          metodo: 'Efectivo',
+          nota: 'Segunda quincena en mano'
+        }
+      ];
+
+      guardarEstado();
+    }
+
+    function guardarEstado() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }
+
+    // ========================================================
+    // NAVEGACIÓN ENTRE PESTAÑAS (SPA SIN RECARGA)
+    // ========================================================
+    function navegarA(tabId) {
+      const tabs = ['inicio', 'dias', 'pagos', 'historial'];
+      tabs.forEach(t => {
+        const el = document.getElementById(`tab-${t}`);
+        const btn = document.getElementById(`nav-btn-${t}`);
+        if (t === tabId) {
+          el.classList.remove('hidden');
+          btn.className = "flex flex-col items-center gap-1 py-1 px-3 rounded-xl transition text-[#2e6b56]";
+        } else {
+          el.classList.add('hidden');
+          btn.className = "flex flex-col items-center gap-1 py-1 px-3 rounded-xl transition text-slate-400 hover:text-slate-700";
+        }
+      });
+
+      // Refrescar vistas pertinentes al entrar
+      if (tabId === 'inicio') renderInicio();
+      if (tabId === 'dias') renderCalendario();
+      if (tabId === 'pagos') renderPagos();
+      if (tabId === 'historial') renderHistorial();
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // ========================================================
+    // GESTIÓN DE FECHAS & NAVEGACIÓN MENSUAL
+    // ========================================================
+    function cambiarMesRelativo(delta) {
+      state.mesActual += delta;
+      if (state.mesActual > 11) {
+        state.mesActual = 0;
+        state.anoActual += 1;
+      } else if (state.mesActual < 0) {
+        state.mesActual = 11;
+        state.anoActual -= 1;
+      }
+      guardarEstado();
+      actualizarVistas();
+    }
+
+    function getKeyFecha(dia) {
+      const m = String(state.mesActual + 1).padStart(2, '0');
+      const d = String(dia).padStart(2, '0');
+      return `${state.anoActual}-${m}-${d}`;
+    }
+
+    function getDiaObjeto(dia) {
+      const key = getKeyFecha(dia);
+      return state.dias[key] || { status: 'libre', tarifa: state.tarifaDefecto, nota: '' };
+    }
+
+    // ========================================================
+    // VISTA 1: RENDER INICIO
+    // ========================================================
+    function renderInicio() {
+      const mesNombre = MESES[state.mesActual];
+      document.getElementById('headerSubtitle').innerText = `Familia Conectada • ${mesNombre} ${state.anoActual}`;
+      document.getElementById('inicioMonthDisplay').innerText = `${mesNombre} ${state.anoActual}`;
+      document.getElementById('cuidadoraNameDisplay').innerText = state.cuidadora;
+      document.getElementById('cuidadoraInitial').innerText = state.cuidadora.split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase();
+      document.getElementById('headerTarifaBadge').innerText = `${state.tarifaDefecto}€/día`;
+      document.getElementById('inicioTarifaTag').innerText = `${state.tarifaDefecto} €/día`;
+      document.getElementById('balanceTarifaBase').innerText = `${state.tarifaDefecto} €/jornada`;
+
+      // Métricas del mes actual
+      let countAsistidos = 0;
+      let countPagados = 0;
+      let countPendientes = 0;
+      let eurosPendientes = 0;
+
+      const prefix = `${state.anoActual}-${String(state.mesActual + 1).padStart(2, '0')}-`;
+      for (const [key, val] of Object.entries(state.dias)) {
+        if (key.startsWith(prefix)) {
+          if (val.status === 'pagado') {
+            countAsistidos++;
+            countPagados++;
+          } else if (val.status === 'pendiente') {
+            countAsistidos++;
+            countPendientes++;
+            eurosPendientes += (val.tarifa || state.tarifaDefecto);
+          }
+        }
+      }
+
+      document.getElementById('balancePendienteTotal').innerText = `${eurosPendientes.toLocaleString('es-ES')} €`;
+      document.getElementById('balanceDiasPendientes').innerText = `(${countPendientes} días por liquidar)`;
+      document.getElementById('metricAsistidos').innerText = countAsistidos;
+      document.getElementById('metricPagados').innerText = countPagados;
+      document.getElementById('btnLiquidarTotal').innerText = `${eurosPendientes} €`;
+
+      // Barras de progreso visuales
+      const maxDiasMes = new Date(state.anoActual, state.mesActual + 1, 0).getDate();
+      document.getElementById('progresoAsistenciaBar').style.width = `${Math.min(100, Math.round((countAsistidos / 22) * 100))}%`;
+      document.getElementById('progresoPagadosBar').style.width = `${Math.min(100, Math.round((countPagados / (countAsistidos || 1)) * 100))}%`;
+
+      // Badge de pagos pendientes en barra inferior
+      const navBadge = document.getElementById('navBadgePagos');
+      if (countPendientes > 0) {
+        navBadge.classList.remove('hidden');
+      } else {
+        navBadge.classList.add('hidden');
+      }
+
+      // Renderizar estado de hoy (usando diaSeleccionadoNum si coincide con hoy o defecto)
+      const diaHoyKey = getKeyFecha(state.diaSeleccionadoNum);
+      const diaHoyData = state.dias[diaHoyKey] || { status: 'libre', tarifa: state.tarifaDefecto, nota: '' };
+      
+      const fechaObj = new Date(state.anoActual, state.mesActual, state.diaSeleccionadoNum);
+      const nombreDiaSemana = DIAS_SEMANA[fechaObj.getDay()];
+      document.getElementById('hoyFechaTexto').innerText = `${nombreDiaSemana}, ${state.diaSeleccionadoNum} de ${mesNombre}`;
+      document.getElementById('hoyNotaInput').value = diaHoyData.nota || '';
+
+      const hoyBadge = document.getElementById('hoyEstadoBadge');
+      const btnAsistio = document.getElementById('btnHoyAsistio');
+      const btnNoVino = document.getElementById('btnHoyNoVino');
+      const btnPend = document.getElementById('btnHoyPendiente');
+      const btnPag = document.getElementById('btnHoyPagado');
+
+      // Reset clases
+      btnAsistio.className = "py-2.5 px-3 rounded-xl border-2 font-bold text-xs flex items-center justify-center gap-1.5 transition border-slate-200 text-slate-700";
+      btnNoVino.className = "py-2.5 px-3 rounded-xl border-2 font-bold text-xs flex items-center justify-center gap-1.5 transition border-slate-200 text-slate-700";
+
+      if (diaHoyData.status === 'pendiente' || diaHoyData.status === 'pagado') {
+        btnAsistio.className = "py-2.5 px-3 rounded-xl border-2 font-bold text-xs flex items-center justify-center gap-1.5 transition border-[#2e6b56] bg-emerald-50 text-[#2e6b56]";
+        hoyBadge.innerText = diaHoyData.status === 'pagado' ? 'Asistió (Pagado)' : 'Asistió (Pendiente)';
+        hoyBadge.className = "px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-900 border border-emerald-200";
+      } else if (diaHoyData.status === 'no_vino') {
+        btnNoVino.className = "py-2.5 px-3 rounded-xl border-2 font-bold text-xs flex items-center justify-center gap-1.5 transition border-rose-500 bg-rose-50 text-rose-700";
+        hoyBadge.innerText = 'No asistió';
+        hoyBadge.className = "px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-rose-100 text-rose-800 border border-rose-200";
+      } else {
+        hoyBadge.innerText = 'Sin registrar';
+        hoyBadge.className = "px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-slate-100 text-slate-600 border border-slate-200";
+      }
+
+      if (diaHoyData.status === 'pagado') {
+        btnPag.className = "flex-1 py-1.5 px-2 rounded-lg text-xs font-bold border transition text-center bg-emerald-600 text-white border-emerald-600";
+        btnPend.className = "flex-1 py-1.5 px-2 rounded-lg text-xs font-bold border transition text-center bg-slate-50 text-slate-600 border-slate-200";
+      } else {
+        btnPend.className = "flex-1 py-1.5 px-2 rounded-lg text-xs font-bold border transition text-center bg-amber-100 text-amber-900 border-amber-300";
+        btnPag.className = "flex-1 py-1.5 px-2 rounded-lg text-xs font-bold border transition text-center bg-slate-50 text-slate-600 border-slate-200";
+      }
+
+      // Render últimos días registrados en Inicio
+      renderListaUltimosDias();
+    }
+
+    function renderListaUltimosDias() {
+      const container = document.getElementById('listaUltimosDias');
+      container.innerHTML = '';
+
+      const prefix = `${state.anoActual}-${String(state.mesActual + 1).padStart(2, '0')}-`;
+      const registrosMes = [];
+
+      for (let d = 31; d >= 1; d--) {
+        const key = `${prefix}${String(d).padStart(2, '0')}`;
+        if (state.dias[key] && state.dias[key].status !== 'libre') {
+          registrosMes.push({ dia: d, ...state.dias[key] });
+        }
+      }
+
+      if (registrosMes.length === 0) {
+        container.innerHTML = '<p class="text-slate-400 italic py-2 text-center">No hay registros activos en este mes aún.</p>';
+        return;
+      }
+
+      registrosMes.slice(0, 5).forEach(item => {
+        const f = new Date(state.anoActual, state.mesActual, item.dia);
+        const diaNom = DIAS_SEMANA[f.getDay()].slice(0, 3).toUpperCase();
+        
+        let badgeHtml = '';
+        if (item.status === 'pagado') {
+          badgeHtml = `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">✓ Pagado (${item.tarifa}€)</span>`;
+        } else if (item.status === 'pendiente') {
+          badgeHtml = `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">⏳ Pendiente (${item.tarifa}€)</span>`;
+        } else {
+          badgeHtml = `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-800">✗ No asistió</span>`;
+        }
+
+        const div = document.createElement('div');
+        div.className = "flex items-center justify-between p-2.5 rounded-2xl bg-slate-50 border border-slate-200/80 hover:bg-slate-100 transition cursor-pointer";
+        div.onclick = () => {
+          state.diaSeleccionadoNum = item.dia;
+          guardarEstado();
+          navegarA('dias');
+        };
+
+        div.innerHTML = `
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-xl bg-white border border-slate-200 font-bold flex flex-col items-center justify-center leading-none text-slate-800">
+              <span class="text-[9px] text-slate-400">${diaNom}</span>
+              <span class="text-xs">${item.dia}</span>
+            </div>
+            <div>
+              <span class="font-bold text-slate-800">${item.nota || 'Jornada habitual'}</span>
+              <span class="text-[11px] text-slate-400 block">Turno mañana</span>
+            </div>
+          </div>
+          <div>${badgeHtml}</div>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    // Acciones directas de la pestaña Inicio
+    function registrarHoy(asistio) {
+      const key = getKeyFecha(state.diaSeleccionadoNum);
+      if (!state.dias[key]) {
+        state.dias[key] = { status: 'libre', tarifa: state.tarifaDefecto, nota: '' };
+      }
+      state.dias[key].status = asistio ? 'pendiente' : 'no_vino';
+      state.dias[key].tarifa = state.tarifaDefecto;
+      guardarEstado();
+      actualizarVistas();
+    }
+
+    function setHoyPagoStatus(nuevoEstado) {
+      const key = getKeyFecha(state.diaSeleccionadoNum);
+      if (!state.dias[key]) {
+        state.dias[key] = { status: 'pendiente', tarifa: state.tarifaDefecto, nota: '' };
+      }
+      state.dias[key].status = nuevoEstado;
+      guardarEstado();
+      actualizarVistas();
+    }
+
+    function guardarNotaHoy(texto) {
+      const key = getKeyFecha(state.diaSeleccionadoNum);
+      if (!state.dias[key]) {
+        state.dias[key] = { status: 'pendiente', tarifa: state.tarifaDefecto, nota: '' };
+      }
+      state.dias[key].nota = texto;
+      guardarEstado();
+    }
+
+    // ========================================================
+    // VISTA 2: CALENDARIO INTERACTIVO
+    // ========================================================
+    function renderCalendario() {
+      const mesNombre = MESES[state.mesActual];
+      document.getElementById('calendarioTitle').innerText = `${mesNombre} ${state.anoActual}`;
+
+      const primerDiaMes = new Date(state.anoActual, state.mesActual, 1);
+      const totalDiasMes = new Date(state.anoActual, state.mesActual + 1, 0).getDate();
+
+      // Ajustar día inicial en lunes (0: Dom -> 6: Lun=0, etc.)
+      let diaInicioSemana = primerDiaMes.getDay() - 1;
+      if (diaInicioSemana === -1) diaInicioSemana = 6;
+
+      const grid = document.getElementById('calendarioGrid');
+      grid.innerHTML = '';
+
+      // Huecos del mes anterior
+      for (let i = 0; i < diaInicioSemana; i++) {
+        const span = document.createElement('div');
+        span.className = "h-14 rounded-xl bg-slate-50/50 border border-transparent flex items-center justify-center text-slate-300 text-xs";
+        grid.appendChild(span);
+      }
+
+      let countAsist = 0;
+      let sumPagado = 0;
+      let sumPendiente = 0;
+
+      // Renderizar días del mes actual
+      for (let dia = 1; dia <= totalDiasMes; dia++) {
+        const key = getKeyFecha(dia);
+        const data = state.dias[key] || { status: 'libre', tarifa: state.tarifaDefecto, nota: '' };
+
+        if (data.status === 'pagado') {
+          countAsist++;
+          sumPagado += (data.tarifa || state.tarifaDefecto);
+        } else if (data.status === 'pendiente') {
+          countAsist++;
+          sumPendiente += (data.tarifa || state.tarifaDefecto);
+        }
+
+        const btn = document.createElement('button');
+        btn.onclick = () => seleccionarDiaCalendario(dia);
+
+        let clasesEstilo = "h-14 p-1 rounded-xl flex flex-col justify-between items-center transition relative border ";
+        let badgeInfo = "";
+
+        if (dia === state.diaSeleccionadoNum) {
+          clasesEstilo += "ring-2 ring-[#2e6b56] ring-offset-1 font-black shadow-sm ";
+        }
+
+        if (data.status === 'pagado') {
+          clasesEstilo += "bg-[#2e6b56] text-white border-[#235343]";
+          badgeInfo = `<span class="text-[9px] font-bold leading-none">${data.tarifa}€</span><span class="text-[8px] bg-emerald-800/80 px-1 rounded">PAG</span>`;
+        } else if (data.status === 'pendiente') {
+          clasesEstilo += "bg-amber-50 text-amber-900 border-amber-300 font-bold";
+          badgeInfo = `<span class="text-[9px] font-bold text-amber-700 leading-none">${data.tarifa}€</span><span class="text-[8px] bg-amber-200 text-amber-900 px-1 rounded">PEND</span>`;
+        } else if (data.status === 'no_vino') {
+          clasesEstilo += "bg-rose-50 text-rose-800 border-rose-200";
+          badgeInfo = `<span class="text-[9px] text-rose-600 leading-none">✗</span>`;
+        } else {
+          // Día libre / sin asignar
+          clasesEstilo += "bg-white text-slate-700 border-slate-200 hover:border-slate-300";
+        }
+
+        btn.className = clasesEstilo;
+        btn.innerHTML = `
+          <span class="text-xs font-bold">${dia}</span>
+          <div class="flex flex-col items-center gap-0.5">${badgeInfo}</div>
+        `;
+
+        grid.appendChild(btn);
+      }
+
+      // Resumen superior calendario
+      document.getElementById('calSummaryAsistidos').innerText = `${countAsist} d`;
+      document.getElementById('calSummaryPagados').innerText = `${sumPagado} €`;
+      document.getElementById('calSummaryPendientes').innerText = `${sumPendiente} €`;
+
+      // Render detalle del día seleccionado
+      renderDetalleDia();
+    }
+
+    function seleccionarDiaCalendario(dia) {
+      state.diaSeleccionadoNum = dia;
+      guardarEstado();
+      renderCalendario();
+    }
+
+    function renderDetalleDia() {
+      const mesNombre = MESES[state.mesActual];
+      const diaKey = getKeyFecha(state.diaSeleccionadoNum);
+      const diaData = state.dias[diaKey] || { status: 'libre', tarifa: state.tarifaDefecto, nota: '' };
+
+      const fechaObj = new Date(state.anoActual, state.mesActual, state.diaSeleccionadoNum);
+      const nombreDiaSemana = DIAS_SEMANA[fechaObj.getDay()];
+
+      document.getElementById('detalleDiaFecha').innerText = `${nombreDiaSemana}, ${state.diaSeleccionadoNum} de ${mesNombre}`;
+      document.getElementById('inputTarifaDiaDetalle').value = diaData.tarifa || state.tarifaDefecto;
+      document.getElementById('inputNotaDiaDetalle').value = diaData.nota || '';
+
+      const badge = document.getElementById('detalleDiaBadge');
+      const btnPend = document.getElementById('btnDetallePendiente');
+      const btnPag = document.getElementById('btnDetallePagado');
+      const btnNoV = document.getElementById('btnDetalleNoVino');
+
+      btnPend.className = "p-2 rounded-xl text-xs font-bold border transition text-center border-slate-200 text-slate-700";
+      btnPag.className = "p-2 rounded-xl text-xs font-bold border transition text-center border-slate-200 text-slate-700";
+      btnNoV.className = "p-2 rounded-xl text-xs font-bold border transition text-center border-slate-200 text-slate-700";
+
+      if (diaData.status === 'pagado') {
+        badge.innerText = `Pagado (${diaData.tarifa}€)`;
+        badge.className = "px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800";
+        btnPag.className = "p-2 rounded-xl text-xs font-bold border transition text-center border-emerald-600 bg-emerald-50 text-emerald-800";
+      } else if (diaData.status === 'pendiente') {
+        badge.innerText = `Pendiente (${diaData.tarifa}€)`;
+        badge.className = "px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800";
+        btnPend.className = "p-2 rounded-xl text-xs font-bold border transition text-center border-amber-400 bg-amber-50 text-amber-900";
+      } else if (diaData.status === 'no_vino') {
+        badge.innerText = `No asistió`;
+        badge.className = "px-2.5 py-1 rounded-full text-xs font-bold bg-rose-100 text-rose-800";
+        btnNoV.className = "p-2 rounded-xl text-xs font-bold border transition text-center border-rose-400 bg-rose-50 text-rose-800";
+      } else {
+        badge.innerText = `Día libre`;
+        badge.className = "px-2.5 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-600";
+      }
+    }
+
+    function setEstadoDiaSeleccionado(nuevoEstado) {
+      const key = getKeyFecha(state.diaSeleccionadoNum);
+      if (!state.dias[key]) {
+        state.dias[key] = { status: 'libre', tarifa: state.tarifaDefecto, nota: '' };
+      }
+      state.dias[key].status = nuevoEstado;
+      guardarEstado();
+      actualizarVistas();
+    }
+
+    function cambiarTarifaDiaEspecifico(valor) {
+      const num = parseFloat(valor) || state.tarifaDefecto;
+      const key = getKeyFecha(state.diaSeleccionadoNum);
+      if (!state.dias[key]) {
+        state.dias[key] = { status: 'libre', tarifa: state.tarifaDefecto, nota: '' };
+      }
+      state.dias[key].tarifa = num;
+      guardarEstado();
+      actualizarVistas();
+    }
+
+    function guardarNotaDiaEspecifico(texto) {
+      const key = getKeyFecha(state.diaSeleccionadoNum);
+      if (!state.dias[key]) {
+        state.dias[key] = { status: 'libre', tarifa: state.tarifaDefecto, nota: '' };
+      }
+      state.dias[key].nota = texto;
+      guardarEstado();
+      actualizarVistas();
+    }
+
+    function marcarLaborablesDelMes() {
+      if (!confirm("¿Deseas marcar todos los Lunes a Viernes de este mes como asistidos (pendientes de pago)?")) return;
+      const totalDiasMes = new Date(state.anoActual, state.mesActual + 1, 0).getDate();
+      for (let dia = 1; dia <= totalDiasMes; dia++) {
+        const fecha = new Date(state.anoActual, state.mesActual, dia);
+        const dayOfWeek = fecha.getDay();
+        if (dayOfWeek >= 1 && dayOfWeek <= 5) { // Lunes a Viernes
+          const key = getKeyFecha(dia);
+          if (!state.dias[key] || state.dias[key].status === 'libre') {
+            state.dias[key] = { status: 'pendiente', tarifa: state.tarifaDefecto, nota: '' };
+          }
+        }
+      }
+      guardarEstado();
+      actualizarVistas();
+    }
+
+    function limpiarMesActual() {
+      if (!confirm("¿Borrar todos los registros marcados en este mes?")) return;
+      const prefix = `${state.anoActual}-${String(state.mesActual + 1).padStart(2, '0')}-`;
+      for (const k in state.dias) {
+        if (k.startsWith(prefix)) {
+          delete state.dias[k];
+        }
+      }
+      guardarEstado();
+      actualizarVistas();
+    }
+
+    // ========================================================
+    // VISTA 3: GESTIÓN DE PAGOS Y LIQUIDACIÓN
+    // ========================================================
+    function renderPagos() {
+      const mesNombre = MESES[state.mesActual];
+      document.getElementById('pagosTagMes').innerText = `${mesNombre} ${state.anoActual}`;
+
+      const prefix = `${state.anoActual}-${String(state.mesActual + 1).padStart(2, '0')}-`;
+      const listaContainer = document.getElementById('listaDiasSinPagar');
+      listaContainer.innerHTML = '';
+
+      let totalPendienteMes = 0;
+      let cantidadPendientes = 0;
+      const diasPendientes = [];
+
+      for (let dia = 1; dia <= 31; dia++) {
+        const key = `${prefix}${String(dia).padStart(2, '0')}`;
+        if (state.dias[key] && state.dias[key].status === 'pendiente') {
+          cantidadPendientes++;
+          totalPendienteMes += (state.dias[key].tarifa || state.tarifaDefecto);
+          diasPendientes.push({ key, dia, ...state.dias[key] });
+        }
+      }
+
+      document.getElementById('pagosMontoPendiente').innerText = `${totalPendienteMes.toLocaleString('es-ES', { minimumFractionDigits: 2 })} €`;
+      document.getElementById('pagosCantidadDiasPendientes').innerText = cantidadPendientes;
+
+      if (diasPendientes.length === 0) {
+        listaContainer.innerHTML = '<div class="text-center py-6 text-slate-400 font-medium text-xs">🎉 ¡Todo al día! No hay días pendientes de pago en este mes.</div>';
+        actualizarCalculoSeleccionados();
+        renderAbonosHistorialMes();
+        return;
+      }
+
+      // Si la selección actual tiene días que ya no son pendientes, filtrarlos
+      state.seleccionadosParaPagar = state.seleccionadosParaPagar.filter(k => state.dias[k] && state.dias[k].status === 'pendiente');
+
+      // Si estaba vacía, preseleccionamos todos para comodidad
+      if (state.seleccionadosParaPagar.length === 0) {
+        state.seleccionadosParaPagar = diasPendientes.map(d => d.key);
+      }
+
+      diasPendientes.forEach(item => {
+        const f = new Date(state.anoActual, state.mesActual, item.dia);
+        const nomDia = DIAS_SEMANA[f.getDay()];
+        const isChecked = state.seleccionadosParaPagar.includes(item.key);
+
+        const row = document.createElement('div');
+        row.className = `flex items-center justify-between p-3 rounded-2xl border transition cursor-pointer ${isChecked ? 'bg-emerald-50/60 border-emerald-300' : 'bg-slate-50 border-slate-200'}`;
+        row.onclick = (e) => {
+          if (e.target.tagName !== 'INPUT') {
+            toggleSeleccionDiaPago(item.key);
+          }
+        };
+
+        row.innerHTML = `
+          <div class="flex items-center gap-3">
+            <input type="checkbox" ${isChecked ? 'checked' : ''} onchange="toggleSeleccionDiaPago('${item.key}')" class="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500 cursor-pointer">
+            <div>
+              <span class="font-bold text-slate-900 text-xs block">${nomDia}, ${item.dia} de ${mesNombre}</span>
+              <span class="text-[11px] text-slate-500">${item.nota || 'Turno ordinario'}</span>
+            </div>
+          </div>
+          <span class="font-black text-slate-900 text-xs">${item.tarifa || state.tarifaDefecto},00 €</span>
+        `;
+        listaContainer.appendChild(row);
+      });
+
+      actualizarCalculoSeleccionados();
+      renderAbonosHistorialMes();
+    }
+
+    function toggleSeleccionDiaPago(key) {
+      if (state.seleccionadosParaPagar.includes(key)) {
+        state.seleccionadosParaPagar = state.seleccionadosParaPagar.filter(k => k !== key);
+      } else {
+        state.seleccionadosParaPagar.push(key);
+      }
+      guardarEstado();
+      renderPagos();
+    }
+
+    function seleccionarTodosLosPendientes(select) {
+      if (select) {
+        const prefix = `${state.anoActual}-${String(state.mesActual + 1).padStart(2, '0')}-`;
+        const todos = [];
+        for (const k in state.dias) {
+          if (k.startsWith(prefix) && state.dias[k].status === 'pendiente') {
+            todos.push(k);
+          }
+        }
+        state.seleccionadosParaPagar = todos;
+      } else {
+        state.seleccionadosParaPagar = [];
+      }
+      guardarEstado();
+      renderPagos();
+    }
+
+    function actualizarCalculoSeleccionados() {
+      let suma = 0;
+      state.seleccionadosParaPagar.forEach(key => {
+        if (state.dias[key]) {
+          suma += (state.dias[key].tarifa || state.tarifaDefecto);
+        }
+      });
+
+      document.getElementById('contadorSeleccionados').innerText = `${state.seleccionadosParaPagar.length} seleccionados`;
+      document.getElementById('totalImporteSeleccionado').innerText = `${suma.toLocaleString('es-ES', { minimumFractionDigits: 2 })} €`;
+      document.getElementById('btnLabelMonto').innerText = `${suma} €`;
+
+      const btn = document.getElementById('btnConfirmarPago');
+      if (state.seleccionadosParaPagar.length === 0) {
+        btn.disabled = true;
+        btn.classList.add('opacity-50', 'cursor-not-allowed');
+      } else {
+        btn.disabled = false;
+        btn.classList.remove('opacity-50', 'cursor-not-allowed');
+      }
+    }
+
+    function setMetodoPago(metodo) {
+      state.metodoPagoSeleccionado = metodo;
+      const metodos = ['Efectivo', 'Bizum', 'Transferencia'];
+      metodos.forEach(m => {
+        const idBtn = m === 'Transferencia' ? 'metodoTransf' : `metodo${m}`;
+        const b = document.getElementById(idBtn);
+        if (m === metodo) {
+          b.className = "py-2 px-2 text-xs font-bold rounded-xl border bg-emerald-50 border-emerald-500 text-[#2e6b56] flex flex-col items-center gap-1";
+        } else {
+          b.className = "py-2 px-2 text-xs font-bold rounded-xl border border-slate-200 text-slate-700 flex flex-col items-center gap-1 hover:border-slate-400";
+        }
+      });
+    }
+
+    function confirmarLiquidacionSeleccionada() {
+      if (state.seleccionadosParaPagar.length === 0) {
+        alert("Por favor, selecciona al menos un día trabajado para liquidar.");
+        return;
+      }
+
+      let totalAbonado = 0;
+      state.seleccionadosParaPagar.forEach(k => {
+        if (state.dias[k]) {
+          state.dias[k].status = 'pagado';
+          totalAbonado += (state.dias[k].tarifa || state.tarifaDefecto);
+        }
+      });
+
+      const notaInput = document.getElementById('notaAbonoInput').value.trim();
+      const nuevoAbono = {
+        id: 'abono-' + Date.now(),
+        fecha: `${new Date().getDate()} ${MESES[state.mesActual]} ${state.anoActual}`,
+        mes: state.mesActual,
+        ano: state.anoActual,
+        importe: totalAbonado,
+        diasContados: state.seleccionadosParaPagar.length,
+        metodo: state.metodoPagoSeleccionado,
+        nota: notaInput || `Abono de ${state.seleccionadosParaPagar.length} días completado`
+      };
+
+      state.abonos.unshift(nuevoAbono);
+      state.seleccionadosParaPagar = [];
+      document.getElementById('notaAbonoInput').value = '';
+
+      guardarEstado();
+      actualizarVistas();
+      alert(`✅ ¡Liquidación guardada con éxito! Se han abonado ${totalAbonado}€ por ${nuevoAbono.diasContados} días.`);
+    }
+
+    function renderAbonosHistorialMes() {
+      const container = document.getElementById('listaAbonosRealizados');
+      container.innerHTML = '';
+
+      const abonosMes = state.abonos.filter(a => a.mes === state.mesActual && a.ano === state.anoActual);
+      if (abonosMes.length === 0) {
+        container.innerHTML = '<p class="text-slate-400 italic text-center py-2">No se han registrado abonos todavía en este mes.</p>';
+        return;
+      }
+
+      abonosMes.forEach(a => {
+        const d = document.createElement('div');
+        d.className = "flex items-center justify-between p-3 bg-slate-50 border border-slate-200 rounded-2xl";
+        d.innerHTML = `
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-xl bg-emerald-100 text-[#2e6b56] flex items-center justify-center font-bold">
+              <i data-lucide="check" class="w-4 h-4"></i>
+            </div>
+            <div>
+              <span class="font-bold text-slate-900 block">${a.fecha} • ${a.metodo}</span>
+              <span class="text-[11px] text-slate-500">${a.nota} (${a.diasContados} días)</span>
+            </div>
+          </div>
+          <span class="font-black text-emerald-800 text-sm">${a.importe},00 €</span>
+        `;
+        container.appendChild(d);
+      });
+    }
+
+    // ========================================================
+    // VISTA 4: ARCHIVO HISTÓRICO ANUAL
+    // ========================================================
+    function renderHistorial() {
+      let grandTotalDias = 0;
+      let grandTotalEuros = 0;
+
+      // Calcular acumulados de todos los meses de 2024
+      const mesesConDatos = [];
+
+      for (let m = 0; m < 12; m++) {
+        let diasMes = 0;
+        let eurosMes = 0;
+        let pendientesMes = 0;
+        const prefix = `2024-${String(m + 1).padStart(2, '0')}-`;
+
+        for (const [k, v] of Object.entries(state.dias)) {
+          if (k.startsWith(prefix)) {
+            if (v.status === 'pagado') {
+              diasMes++;
+              eurosMes += (v.tarifa || state.tarifaDefecto);
+            } else if (v.status === 'pendiente') {
+              pendientesMes++;
+            }
+          }
+        }
+
+        if (diasMes > 0 || pendientesMes > 0 || m === state.mesActual) {
+          grandTotalDias += diasMes;
+          grandTotalEuros += eurosMes;
+          mesesConDatos.push({
+            mesIndex: m,
+            nombre: MESES[m],
+            dias: diasMes,
+            euros: eurosMes,
+            pendientes: pendientesMes
+          });
+        }
+      }
+
+      document.getElementById('historialTotalDias').innerText = grandTotalDias;
+      document.getElementById('historialTotalEuros').innerText = `${grandTotalEuros.toLocaleString('es-ES')} €`;
+
+      const listContainer = document.getElementById('listaMesesHistorico');
+      listContainer.innerHTML = '';
+
+      mesesConDatos.reverse().forEach(m => {
+        const card = document.createElement('div');
+        card.className = "bg-white p-4 rounded-3xl border border-slate-200 shadow-sm space-y-3";
+        
+        let statusTag = '';
+        if (m.pendientes > 0) {
+          statusTag = `<span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-900 border border-amber-200">${m.pendientes} días pendientes</span>`;
+        } else {
+          statusTag = `<span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-900 border border-emerald-200">✓ 100% Liquidado</span>`;
+        }
+
+        card.innerHTML = `
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <div class="w-8 h-8 rounded-xl bg-slate-100 text-slate-800 font-black text-xs flex items-center justify-center">
+                ${m.nombre.slice(0,3).toUpperCase()}
+              </div>
+              <h3 class="font-bold text-slate-900 text-sm">${m.nombre} 2024</h3>
+            </div>
+            ${statusTag}
+          </div>
+
+          <div class="grid grid-cols-2 gap-2 text-xs pt-1">
+            <div class="bg-slate-50 p-2.5 rounded-xl">
+              <span class="text-slate-500 block text-[10px]">Días liquidados</span>
+              <span class="font-extrabold text-slate-900 text-sm">${m.dias} días</span>
+            </div>
+            <div class="bg-slate-50 p-2.5 rounded-xl">
+              <span class="text-slate-500 block text-[10px]">Total pagado</span>
+              <span class="font-black text-emerald-800 text-sm">${m.euros} €</span>
+            </div>
+          </div>
+
+          <button onclick="irAMesHistorico(${m.mesIndex})" class="w-full py-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl font-bold text-xs text-slate-700 transition flex items-center justify-center gap-1">
+            <i data-lucide="eye" class="w-3.5 h-3.5 text-[#2e6b56]"></i>
+            <span>Ver desglose completo de ${m.nombre}</span>
+          </button>
+        `;
+        listContainer.appendChild(card);
+      });
+    }
+
+    function irAMesHistorico(mesIndex) {
+      state.mesActual = mesIndex;
+      guardarEstado();
+      navegarA('dias');
+    }
+
+    // ========================================================
+    // MODAL DE CONFIGURACIÓN DE TARIFA
+    // ========================================================
+    function toggleTarifaModal() {
+      const modal = document.getElementById('modalTarifa');
+      modal.classList.toggle('hidden');
+      if (!modal.classList.contains('hidden')) {
+        document.getElementById('modalInputCuidadora').value = state.cuidadora;
+        document.getElementById('modalInputTarifa').value = state.tarifaDefecto;
+      }
+    }
+
+    function guardarConfiguracionTarifa() {
+      const nombre = document.getElementById('modalInputCuidadora').value.trim();
+      const tarifa = parseFloat(document.getElementById('modalInputTarifa').value);
+
+      if (nombre) state.cuidadora = nombre;
+      if (tarifa && tarifa > 0) state.tarifaDefecto = tarifa;
+
+      guardarEstado();
+      toggleTarifaModal();
+      actualizarVistas();
+    }
+
+    // ========================================================
+    // EXPORTAR COPIA DE SEGURIDAD (BACKUP JSON)
+    // ========================================================
+    function exportarBackup() {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state, null, 2));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute("href", dataStr);
+      downloadAnchor.setAttribute("download", `cuidamama_backup_${Date.now()}.json`);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+    }
+
+    // Refrescar todas las interfaces dependientes
+    function actualizarVistas() {
+      renderInicio();
+      renderCalendario();
+      renderPagos();
+      renderHistorial();
+      lucide.createIcons();
+    }
+
+    // ========================================================
+    // INICIALIZACIÓN AL CARGAR LA PÁGINA
+    // ========================================================
+    document.addEventListener('DOMContentLoaded', () => {
+      inicializarDatosPorDefecto();
+      actualizarVistas();
+    });
+  </script>
 </body>
 </html>
